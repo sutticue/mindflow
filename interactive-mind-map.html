@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindFlow - Interactive Mind Mapping</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* App container */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Header styles */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: #2a2a72;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .share-button, .save-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .share-button {
+            background-color: #4a47a3;
+            color: white;
+        }
+        
+        .save-button {
+            background-color: white;
+            color: #2a2a72;
+        }
+        
+        .share-button:hover, .save-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Main content area */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* Toolbar styles */
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            width: 90px;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-right: 1px solid #ddd;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .toolbar-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+            color: #555;
+        }
+        
+        .tool-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 5px;
+        }
+        
+        .tool-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .tool-button .icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .tool-button .label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .separator {
+            height: 1px;
+            background-color: #ddd;
+            margin: 10px 0;
+            width: 100%;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        
+        .zoom-button {
+            width: 25px;
+            height: 25px;
+            border: 1px solid #ccc;
+            background-color: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .zoom-level {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        /* Mind map styles */
+        .mind-map-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #f9f9f9;
+            background-image: 
+                linear-gradient(rgba(200, 200, 200, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .mind-map-canvas {
+            cursor: grab;
+        }
+        
+        .mind-map-canvas:active {
+            cursor: grabbing;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .instructions p {
+            margin: 5px 0;
+            color: #333;
+        }
+        
+        /* Collaboration panel styles */
+        .collaboration-panel {
+            width: 280px;
+            background-color: white;
+            border-left: 1px solid #ddd;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .collaboration-panel.collapsed {
+            width: 40px;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .panel-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .toggle-button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: #2a2a72;
+            border-bottom: 2px solid #2a2a72;
+            font-weight: 500;
+        }
+        
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .collaborators-list {
+            padding: 10px;
+        }
+        
+        .collaborator {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            transition: background-color 0.2s;
+        }
+        
+        .collaborator:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .collaborator-avatar {
+            position: relative;
+            margin-right: 10px;
+        }
+        
+        .collaborator-avatar img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #ddd;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        .status-indicator.online {
+            background-color: #2ecc71;
+        }
+        
+        .status-indicator.offline {
+            background-color: #95a5a6;
+        }
+        
+        .collaborator-info {
+            flex: 1;
+        }
+        
+        .collaborator-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .collaborator-activity {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .collaborator-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+        
+        .invite-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px dashed #ccc;
+            background: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .invite-button:hover {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .plus-icon {
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+        
+        .message.incoming {
+            align-self: flex-start;
+            background-color: #f1f0f0;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message.outgoing {
+            align-self: flex-end;
+            background-color: #d1e7ff;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            font-size: 0.8rem;
+        }
+        
+        .sender-name {
+            font-weight: 500;
+        }
+        
+        .message-time {
+            color: #888;
+        }
+        
+        .message-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .message-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        .message-input input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .message-input button {
+            padding: 8px 15px;
+            margin-left: 8px;
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        /* Footer styles */
+        .app-footer {
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+            background-color: #f5f5f5;
+            border-top: 1px solid #eee;
+        }
+
+        /* Node edit popup */
+        .node-editor {
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            width: 250px;
+        }
+
+        .node-editor input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .color-option {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .color-option.selected {
+            border-color: #333;
+        }
+
+        .editor-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .editor-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .save-node-btn {
+            background-color: #2a2a72;
+            color: white;
+        }
+
+        .delete-node-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .cancel-edit-btn {
+            background-color: #eee;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>MindFlow - Interactive Mind Mapping</h1>
+            <div class="user-controls">
+                <button class="share-button" id="shareButton">Share</button>
+                <button class="save-button" id="saveButton">Save</button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="toolbar">
+                <div class="toolbar-title">Tools</div>
+                
+                <button class="tool-button" id="addNodeBtn">
+                    <span class="icon">➕</span>
+                    <span class="label">Add Node</span>
+                </button>
+                
+                <button class="tool-button" id="connectBtn">
+                    <span class="icon">🔗</span>
+                    <span class="label">Connect</span>
+                </button>
+                
+                <button class="tool-button" id="formatBtn">
+                    <span class="icon">🎨</span>
+                    <span class="label">Format</span>
+                </button>
+                
+                <button class="tool-button" id="exportBtn">
+                    <span class="icon">💾</span>
+                    <span class="label">Export</span>
+                </button>
+                
+                <div class="separator"></div>
+                
+                <div class="zoom-controls">
+                    <button class="zoom-button" id="zoomOutBtn">-</button>
+                    <span class="zoom-level" id="zoomLevel">100%</span>
+                    <button class="zoom-button" id="zoomInBtn">+</button>
+                </div>
+                
+                <div class="separator"></div>
+                
+                <button class="tool-button template-button" id="templateBtn">
+                    <span class="icon">📋</span>
+                    <span class="label">Templates</span>
+                </button>
+            </div>
+            
+            <div class="mind-map-container">
+                <canvas id="mindMapCanvas" class="mind-map-canvas"></canvas>
+                <div class="instructions">
+                    <p>🖱️ Double-click to add a new idea</p>
+                    <p>🔄 Drag nodes to rearrange</p>
+                    <p>🔗 Select a node then double-click elsewhere to create connection</p>
+                    <p>✏️ Right-click a node to edit</p>
+                </div>
+
+                <div class="node-editor" id="nodeEditor" style="display: none;">
+                    <input type="text" id="nodeTextInput" placeholder="Node text">
+                    <div class="color-options" id="colorOptions">
+                        <div class="color-option" data-color="#ff7675" style="background-color: #ff7675;"></div>
+                        <div class="color-option" data-color="#74b9ff" style="background-color: #74b9ff;"></div>
+                        <div class="color-option" data-color="#55efc4" style="background-color: #55efc4;"></div>
+                        <div class="color-option" data-color="#fdcb6e" style="background-color: #fdcb6e;"></div>
+                        <div class="color-option" data-color="#a29bfe" style="background-color: #a29bfe;"></div>
+                    </div>
+                    <div class="editor-buttons">
+                        <button class="save-node-btn" id="saveNodeBtn">Save</button>
+                        <button class="delete-node-btn" id="deleteNodeBtn">Delete</button>
+                        <button class="cancel-edit-btn" id="cancelEditBtn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collaboration-panel" id="collaborationPanel">
+                <div class="panel-header">
+                    <h3>Collaboration</h3>
+                    <button class="toggle-button" id="togglePanelBtn">»</button>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab active" id="peopleTab">People (3)</button>
+                    <button class="tab" id="chatTab">Chat</button>
+                </div>
+                
+                <div class="panel-content" id="panelContent">
+                    <div class="collaborators-list" id="collaboratorsContainer">
+                        <div class="collaborator">
+                            <div class="collaborator-avatar">
+                                <div style="width: 32px; height: 32px; background-color: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #666;">👤</div>
+                                <span class="status-indicator online"></span>
+                            </div>
+                            <div class="collaborator-info">
+                                <div class="collaborator-name">You</div>
+                                <div class="collaborator-activity">Active now</div>
+                            </div>
+                            <div class="collaborator-color" style="background-color: #ff7675;"></div>
+                        </div>
+                        
+                        <div class="collaborator">
+                            <div class="collaborator-avatar">
+                                <div style="width: 32px; height: 32px; background-color: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #666;">👤</div>
+                                <span class="status-indicator online"></span>
+                            </div>
+                            <div class="collaborator-info">
+                                <div class="collaborator-name">Alex Kim</div>
+                                <div class="collaborator-activity">Active now</div>
+                            </div>
+                            <div class="collaborator-color" style="background-color: #74b9ff;"></div>
+                        </div>
+                        
+                        <div class="collaborator">
+                            <div class="collaborator-avatar">
+                                <div style="width: 32px; height: 32px; background-color: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #666;">👤</div>
+                                <span class="status-indicator offline"></span>
+                            </div>
+                            <div class="collaborator-info">
+                                <div class="collaborator-name">Jordan Smith</div>
+                                <div class="collaborator-activity">Away</div>
+                            </div>
+                            <div class="collaborator-color" style="background-color: #55efc4;"></div>
+                        </div>
+                        
+                        <button class="invite-button" id="inviteBtn">
+                            <span class="plus-icon">+</span>
+                            Invite Collaborator
+                        </button>
+                    </div>
+                    
+                    <div class="chat-container" id="chatContainer" style="display: none;">
+                        <div class="messages" id="messagesContainer">
+                            <div class="message incoming">
+                                <div class="message-header">
+                                    <span class="sender-name">Alex Kim</span>
+                                    <span class="message-time">11:25</span>
+                                </div>
+                                <div class="message-content">I think we should add another section for market research</div>
+                            </div>
+                            
+                            <div class="message outgoing">
+                                <div class="message-header">
+                                    <span class="sender-name">You</span>
+                                    <span class="message-time">11:27</span>
+                                </div>
+                                <div class="message-content">Good idea, I'll start working on it</div>
+                            </div>
+                        </div>
+                        
+                        <div class="message-input">
+                            <input type="text" placeholder="Type a message..." id="messageInput">
+                            <button id="sendMessageBtn">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="app-footer">
+            <p>MindFlow - Collaborative Mind Mapping © 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the canvas
+            const canvas = document.getElementById('mindMapCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                drawMindMap();
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Mind map data
+            let nodes = [
+                { id: '1', text: 'Main Idea', x: 400, y: 300, color: '#ff7675' },
+                { id: '2', text: 'Concept 1', x: 200, y: 200, color: '#74b9ff' },
+                { id: '3', text: 'Concept 2', x: 600, y: 200, color: '#55efc4' },
+                { id: '4', text: 'Concept 3', x: 200, y: 400, color: '#fdcb6e' },
+                { id: '5', text: 'Concept 4', x: 600, y: 400, color: '#a29bfe' },
+            ];
+            
+            let connections = [
+                { from: '1', to: '2' },
+                { from: '1', to: '3' },
+                { from: '1', to: '4' },
+                { from: '1', to: '5' },
+            ];
+            
+            // Track state
+            let activeNodeId = null;
+            let dragNodeId = null;
+            let dragOffset = { x: 0, y: 0 };
+            let connectMode = false;
+            let scale = 1;
+            let editingNodeId = null;
+            
+            // Node editor
+            const nodeEditor = document.getElementById('nodeEditor');
+            const nodeTextInput = document.getElementById('nodeTextInput');
+            const colorOptions = document.querySelectorAll('.color-option');
+            const saveNodeBtn = document.getElementById('saveNodeBtn');
+            const deleteNodeBtn = document.getElementById('deleteNodeBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            let selectedColor = '#ff7675';
+            
+            // Draw the mind map
+            function drawMindMap() {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Save context for scaling
+                ctx.save();
+                ctx.scale(scale, scale);
+                
+                // Draw connections
+                connections.forEach(conn => {
+                    const fromNode = nodes.find(n => n.id === conn.from);
+                    const toNode = nodes.find(n => n.id === conn.to);
+                    
+                    if (fromNode && toNode) {
+                        ctx.beginPath();
+                        ctx.moveTo(fromNode.x, fromNode.y);
+                        ctx.lineTo(toNode.x, toNode.y);
+                        ctx.strokeStyle = '#888';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                });
+                
+                // Draw nodes
+                nodes.forEach(node => {
+                    // Node circle
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 40, 0, Math.PI * 2);
+                    ctx.fillStyle = node.color;
+                    ctx.fill();
+                    
+                    // Highlight active node
+                    if (node.id === activeNodeId) {
+                        ctx.beginPath();
+                        ctx.arc(node.x, node.y, 43, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+                    
+                    // Node text
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(node.text, node.x, node.y);
+                });
+                
+                // Restore context
+                ctx.restore();
+            }
+            
+            // Get mouse position relative to canvas
+            function getMousePos(e) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: (e.clientX - rect.left) / scale,
+                    y: (e.clientY - rect.top) / scale
+                };
+            }
+            
+            // Find node under mouse
+            function getNodeAtPosition(x, y) {
+                for (const node of nodes) {
+                    const dx = node.x - x;
+                    const dy = node.y - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance <= 40) {
+                        return node;
+                    }
+                }
+                return null;
+            }
+            
+            // Add event listeners for canvas interaction
+            canvas.addEventListener('mousedown', function(e) {
+                if (e.button === 2) return; // Right click is handled separately
+                
+                const pos = getMousePos(e);
+                const node = getNodeAtPosition(pos.x, pos.y);
+                
+                if (node) {
+                    activeNodeId = node.id;
+                    dragNodeId = node.id;
+                    dragOffset = {
+                        x: pos.x - node.x,
+                        y: pos.y - node.y
+                    };
+                } else {
+                    activeNodeId = null;
+                }
+                
+                drawMindMap();
+            });
+            
+            canvas.addEventListener('mousemove', function(e) {
+                if (dragNodeId) {
+                    const pos = getMousePos(e);
+                    
+                    nodes = nodes.map(node => {
+                        if (node.id === dragNodeId) {
+                            return {
+                                ...node,
+                                x: pos.x - dragOffset.x,
+                                y: pos.y - dragOffset.y
+                            };
+                        }
+                        return node;
+                    });
+                    
+                    drawMindMap();
+                }
+            });
+            
+            canvas.addEventListener('mouseup', function() {
+                dragNodeId = null;
+            });
+            
+            canvas.addEventListener('mouseleave', function() {
+                dragNodeId = null;
+            });
+            
+            canvas.addEventListener('dblclick', function(e) {
+                const pos = getMousePos(e);
+                
+                // Check if clicked on existing node
+                const clickedNode = getNodeAtPosition(pos.x, pos.y);
+                
+                if (!clickedNode) {
+                    // Create new node
+                    const id = Date.now().toString();
+                    const colors = ['#ff7675', '#74b9ff', '#55efc4', '#fdcb6e', '#a29bfe'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    const newNode = { id, text: 'New Idea', x: pos.x, y: pos.y, color };
+                    nodes.push(newNode);
+                    
+                    // If a node is active and connect mode is on, connect it to the new node
+                    if (activeNodeId) {
+                        connections.push({ from: activeNodeId, to: id });
+                    }
+                    
+                    activeNodeId = id;
+                    drawMindMap();
+                    
+                    // Open editor for the new node
+                    editNode(newNode);
+                }
+            });
+            
+            // Right-click to edit node
+            canvas.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                
+                const pos = getMousePos(e);
+                const node = getNodeAtPosition(pos.x, pos.y);
+                
+                if (node) {
+                    editNode(node);
+                }
+            });
+            
+            // Node editor functions
+            function editNode(node) {
+                editingNodeId = node.id;
+                
+                // Position the editor near the node
+                const nodePos = {
+                    x: node.x * scale,
+                    y: node.y * scale
+                };
+                
+                const rect = canvas.getBoundingClientRect();
+                nodeEditor.style.left = (rect.left + nodePos.x + 60) + 'px';
+                nodeEditor.style.top = (rect.top + nodePos.y - 50) + 'px';
+                
+                // Set initial values
+                nodeTextInput.value = node.text;
+                selectedColor = node.color;
+                
+                // Highlight the selected color
+                colorOptions.forEach(option => {
+                    if (option.dataset.color === selectedColor) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+                
+                // Show the editor
+                nodeEditor.style.display = 'block';
+            }
+            
+            // Color selection
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    selectedColor = this.dataset.color;
+                    
+                    // Update selection visual
+                    colorOptions.forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Save node changes
+            saveNodeBtn.addEventListener('click', function() {
+                if (editingNodeId) {
+                    nodes = nodes.map(node => {
+                        if (node.id === editingNodeId) {
+                            return {
+                                ...node,
+                                text: nodeTextInput.value,
+                                color: selectedColor
+                            };
+                        }
+                        return node;
+                    });
+                    
+                    nodeEditor.style.display = 'none';
+                    editingNodeId = null;
+                    drawMindMap();
+                }
+            });
+            
+            // Delete node
+            deleteNodeBtn.addEventListener('click', function() {
+                if (editingNodeId) {
+                    // Remove the node
+                    nodes = nodes.filter(node => node.id !== editingNodeId);
+                    
+                    // Remove any connections to/from this node
+                    connections = connections.filter(conn => 
+                        conn.from !== editingNodeId && conn.to !== editingNodeId
+                    );
+                    
+                    nodeEditor.style.display = 'none';
+                    editingNodeId = null;
+                    
+                    if (activeNodeId === editingNodeId) {
+                        activeNodeId = null;
+                    }
+                    
+                    drawMindMap();
+                }
+            });
+            
+            // Cancel editing
+            cancelEditBtn.addEventListener('click', function() {
+                nodeEditor.style.display = 'none';
+                editingNodeId = null;
+            });
+            
+            // Toolbar functionality
+            document.getElementById('addNodeBtn').addEventListener('click', function() {
+                // Add node in the center if canvas is empty, or near the active node
+                let x = canvas.width / (2 * scale);
+                let y = canvas.height / (2 * scale);
+                
+                if (activeNodeId) {
+                    const activeNode = nodes.find(n => n.id === activeNodeId);
+                    if (activeNode) {
+                        x = activeNode.x + 100;
+                        y = activeNode.y;
+                    }
+                }
+                
+                const id = Date.now().toString();
+                const colors = ['#ff7675', '#74b9ff', '#55efc4', '#fdcb6e', '#a29bfe'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                const newNode = { id, text: 'New Idea', x, y, color };
+                nodes.push(newNode);
+                
+                if (activeNodeId) {
+                    connections.push({ from: activeNodeId, to: id });
+                }
+                
+                activeNodeId = id;
+                drawMindMap();
+                
+                // Open editor for the new node
+                editNode(newNode);
+            });
+            
+            document.getElementById('connectBtn').addEventListener('click', function() {
+                connectMode = !connectMode;
+                if (connectMode) {
+                    this.style.backgroundColor = '#d1e7ff';
+                    canvas.style.cursor = 'crosshair';
+                } else {
+                    this.style.backgroundColor = '';
+                    canvas.style.cursor = 'grab';
+                }
+            });
+            
+            // Zoom functionality
+            document.getElementById('zoomInBtn').addEventListener('click', function() {
+                scale *= 1.1;
+                document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
+                drawMindMap();
+            });
+            
+            document.getElementById('zoomOutBtn').addEventListener('click', function() {
+                scale *= 0.9;
+                document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
+                drawMindMap();
+            });
+            
+            // Collaboration panel
+            document.getElementById('togglePanelBtn').addEventListener('click', function() {
+                const panel = document.getElementById('collaborationPanel');
+                panel.classList.toggle('collapsed');
+                
+                if (panel.classList.contains('collapsed')) {
+                    this.textContent = '«';
+                } else {
+                    this.textContent = '»';
+                }
+            });
+            
+            // Panel tabs
+            document.getElementById('peopleTab').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('chatTab').classList.remove('active');
+                document.getElementById('collaboratorsContainer').style.display = 'block';
+                document.getElementById('chatContainer').style.display = 'none';
+            });
+            
+            document.getElementById('chatTab').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('peopleTab').classList.remove('active');
+                document.getElementById('collaboratorsContainer').style.display = 'none';
+                document.getElementById('chatContainer').style.display = 'flex';
+            });
+            
+            // Chat functionality
+            document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const input = document.getElementById('messageInput');
+                const message = input.value.trim();
+                
+                if (message) {
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    
+                    // Create message element
+                    const messageEl = document.createElement('div');
+                    messageEl.className = 'message outgoing';
+                    
+                    const now = new Date();
+                    const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                                   now.getMinutes().toString().padStart(2, '0');
+                    
+                    messageEl.innerHTML = `
+                        <div class="message-header">
+                            <span class="sender-name">You</span>
+                            <span class="message-time">${timeStr}</span>
+                        </div>
+                        <div class="message-content">${message}</div>
+                    `;
+                    
+                    messagesContainer.appendChild(messageEl);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    
+                    input.value = '';
+                }
+            }
+            
+            // Save and export functionality
+            document.getElementById('saveButton').addEventListener('click', function() {
+                const data = {
+                    nodes: nodes,
+                    connections: connections
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mindmap-' + new Date().toISOString().slice(0, 10) + '.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert('Mind map saved!');
+            });
+            
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                // Create a new canvas to export the entire mind map
+                const exportCanvas = document.createElement('canvas');
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                // Find dimensions to fit all nodes
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                
+                nodes.forEach(node => {
+                    minX = Math.min(minX, node.x - 50);
+                    minY = Math.min(minY, node.y - 50);
+                    maxX = Math.max(maxX, node.x + 50);
+                    maxY = Math.max(maxY, node.y + 50);
+                });
+                
+                // Add some padding
+                minX -= 50;
+                minY -= 50;
+                maxX += 50;
+                maxY += 50;
+                
+                const width = maxX - minX;
+                const height = maxY - minY;
+                
+                exportCanvas.width = width;
+                exportCanvas.height = height;
+                
+                // Fill background
+                exportCtx.fillStyle = '#f9f9f9';
+                exportCtx.fillRect(0, 0, width, height);
+                
+                // Draw grid
+                exportCtx.strokeStyle = 'rgba(200, 200, 200, 0.2)';
+                exportCtx.lineWidth = 1;
+                
+                for (let x = 0; x < width; x += 20) {
+                    exportCtx.beginPath();
+                    exportCtx.moveTo(x, 0);
+                    exportCtx.lineTo(x, height);
+                    exportCtx.stroke();
+                }
+                
+                for (let y = 0; y < height; y += 20) {
+                    exportCtx.beginPath();
+                    exportCtx.moveTo(0, y);
+                    exportCtx.lineTo(width, y);
+                    exportCtx.stroke();
+                }
+                
+                // Draw connections
+                connections.forEach(conn => {
+                    const fromNode = nodes.find(n => n.id === conn.from);
+                    const toNode = nodes.find(n => n.id === conn.to);
+                    
+                    if (fromNode && toNode) {
+                        exportCtx.beginPath();
+                        exportCtx.moveTo(fromNode.x - minX, fromNode.y - minY);
+                        exportCtx.lineTo(toNode.x - minX, toNode.y - minY);
+                        exportCtx.strokeStyle = '#888';
+                        exportCtx.lineWidth = 2;
+                        exportCtx.stroke();
+                    }
+                });
+                
+                // Draw nodes
+                nodes.forEach(node => {
+                    // Node circle
+                    exportCtx.beginPath();
+                    exportCtx.arc(node.x - minX, node.y - minY, 40, 0, Math.PI * 2);
+                    exportCtx.fillStyle = node.color;
+                    exportCtx.fill();
+                    
+                    // Node text
+                    exportCtx.fillStyle = '#fff';
+                    exportCtx.font = '14px Arial';
+                    exportCtx.textAlign = 'center';
+                    exportCtx.textBaseline = 'middle';
+                    exportCtx.fillText(node.text, node.x - minX, node.y - minY);
+                });
+                
+                // Export as image
+                const img = exportCanvas.toDataURL('image/png');
+                
+                const a = document.createElement('a');
+                a.href = img;
+                a.download = 'mindmap-' + new Date().toISOString().slice(0, 10) + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+            
+            // Share functionality
+            document.getElementById('shareButton').addEventListener('click', function() {
+                alert('Sharing link copied to clipboard! (In a real app, this would generate a shareable link)');
+            });
+            
+            document.getElementById('inviteBtn').addEventListener('click', function() {
+                alert('Invitation sent! (In a real app, this would send an email invitation)');
+            });
+            
+            // Format functionality - just opens the editor for the active node
+            document.getElementById('formatBtn').addEventListener('click', function() {
+                if (activeNodeId) {
+                    const node = nodes.find(n => n.id === activeNodeId);
+                    if (node) {
+                        editNode(node);
+                    }
+                } else {
+                    alert('Select a node to format it');
+                }
+            });
+            
+            // Templates functionality
+            document.getElementById('templateBtn').addEventListener('click', function() {
+                const templates = [
+                    {
+                        name: 'Project Plan',
+                        nodes: [
+                            { id: 't1', text: 'Project', x: 400, y: 300, color: '#ff7675' },
+                            { id: 't2', text: 'Planning', x: 250, y: 150, color: '#74b9ff' },
+                            { id: 't3', text: 'Execution', x: 550, y: 150, color: '#55efc4' },
+                            { id: 't4', text: 'Timeline', x: 250, y: 300, color: '#fdcb6e' },
+                            { id: 't5', text: 'Resources', x: 550, y: 300, color: '#a29bfe' },
+                            { id: 't6', text: 'Evaluation', x: 400, y: 450, color: '#74b9ff' },
+                        ],
+                        connections: [
+                            { from: 't1', to: 't2' },
+                            { from: 't1', to: 't3' },
+                            { from: 't1', to: 't4' },
+                            { from: 't1', to: 't5' },
+                            { from: 't1', to: 't6' },
+                        ]
+                    },
+                    {
+                        name: 'SWOT Analysis',
+                        nodes: [
+                            { id: 't1', text: 'SWOT', x: 400, y: 300, color: '#ff7675' },
+                            { id: 't2', text: 'Strengths', x: 250, y: 150, color: '#74b9ff' },
+                            { id: 't3', text: 'Weaknesses', x: 550, y: 150, color: '#55efc4' },
+                            { id: 't4', text: 'Opportunities', x: 250, y: 450, color: '#fdcb6e' },
+                            { id: 't5', text: 'Threats', x: 550, y: 450, color: '#a29bfe' },
+                        ],
+                        connections: [
+                            { from: 't1', to: 't2' },
+                            { from: 't1', to: 't3' },
+                            { from: 't1', to: 't4' },
+                            { from: 't1', to: 't5' },
+                        ]
+                    }
+                ];
+                
+                // Simple template selection
+                const templateIndex = confirm('Do you want to load the Project Plan template? Cancel for SWOT Analysis.') ? 0 : 1;
+                
+                nodes = templates[templateIndex].nodes;
+                connections = templates[templateIndex].connections;
+                activeNodeId = null;
+                drawMindMap();
+                
+                alert(`${templates[templateIndex].name} template loaded!`);
+            });
+            
+            // Prevent context menu on right-click
+            canvas.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
+            // Initial drawing
+            drawMindMap();
+        });
+    </script>
+</body>
+</html>
